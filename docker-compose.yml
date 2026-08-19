@@ -1,0 +1,74 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nobatyar_app
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nobatyar
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nobatyar_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - nobatyar
+
+  mysql:
+    image: mysql:8.0
+    container_name: nobatyar_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: nobatyar
+      MYSQL_USER: nobatyar
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - nobatyar_mysql_data:/var/lib/mysql
+    networks:
+      - nobatyar
+
+  redis:
+    image: redis:7-alpine
+    container_name: nobatyar_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - nobatyar
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nobatyar_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    depends_on:
+      - nginx
+    networks:
+      - nobatyar
+
+networks:
+  nobatyar:
+    driver: bridge
+
+volumes:
+  nobatyar_mysql_data:
