@@ -23,4 +23,17 @@ class AuthService
 
         return $user;
     }
+
+        public function login(array $credentials): User
+    {
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['ایمیل یا رمز عبور اشتباه است.'],
+            ]);
+        }
+
+        return $user;
+    }
 }
