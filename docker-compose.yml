@@ -57,7 +57,6 @@ services:
     container_name: nobatyar_frontend
     volumes:
       - ./frontend:/app
-      - /app/node_modules
     working_dir: /app
     ports:
       - "5173:5173"
