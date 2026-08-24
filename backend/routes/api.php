@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Booking\AppointmentController;
+use App\Http\Controllers\Booking\AvailabilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -31,4 +33,10 @@ Route::prefix('auth')->group(function () {
         Route::post('email/resend', [EmailVerificationController::class, 'resend'])
             ->middleware('throttle:auth-sensitive');
     });
+});
+
+Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
+    Route::get('availability', AvailabilityController::class);
+    Route::post('appointments', [AppointmentController::class, 'store']);
+    Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 });
