@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', RegisterController::class)
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:auth-sensitive');
 
     Route::post('login', [LoginController::class, 'login'])
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:auth-sensitive');
 
     Route::post('forgot-password', [PasswordResetController::class, 'forgot'])
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:auth-sensitive');
 
     Route::post('reset-password', [PasswordResetController::class, 'reset'])
-        ->middleware('throttle:6,1');
+        ->middleware('throttle:auth-sensitive');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [LoginController::class, 'logout']);
@@ -29,6 +29,6 @@ Route::prefix('auth')->group(function () {
             ->name('verification.verify');
 
         Route::post('email/resend', [EmailVerificationController::class, 'resend'])
-            ->middleware('throttle:6,1');
+            ->middleware('throttle:auth-sensitive');
     });
 });
