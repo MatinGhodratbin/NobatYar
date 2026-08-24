@@ -37,6 +37,8 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
     Route::get('availability', AvailabilityController::class);
+    Route::get('services', [\App\Http\Controllers\Catalog\ServiceController::class, 'index']);
+    Route::get('employees', [\App\Http\Controllers\Catalog\EmployeeController::class, 'index']);
     Route::post('appointments', [AppointmentController::class, 'store']);
     Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 });
