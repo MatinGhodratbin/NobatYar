@@ -68,3 +68,5 @@ Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(
         Route::delete('employees/{employee}', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'destroy']);
     });
 });
+
+Route::get('my-business', \App\Http\Controllers\MyBusinessController::class);
