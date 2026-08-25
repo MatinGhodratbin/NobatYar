@@ -26,7 +26,7 @@ function stepIndex(status: string) {
 export default function LiveQueuePage() {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const navigate = useNavigate();
-  const { status, isLoading, isError, refetch } = useLiveQueue(
+  const { status, reminderMessage, isLoading, isError, refetch } = useLiveQueue(
     appointmentId ? Number(appointmentId) : undefined
   );
 
@@ -100,6 +100,11 @@ export default function LiveQueuePage() {
           </div>
         </div>
       </div>
+      {reminderMessage && (
+        <div className="fixed bottom-6 left-1/2 z-30 w-[90%] max-w-sm -translate-x-1/2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 shadow-lg text-center">
+          <p className="text-sm text-amber-800">{reminderMessage}</p>
+      </div>
+      )}
     </div>
   );
 }
