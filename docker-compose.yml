@@ -65,6 +65,23 @@ services:
     networks:
       - nobatyar
 
+  reverb:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nobatyar_reverb
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nobatyar    
+
 networks:
   nobatyar:
     driver: bridge
