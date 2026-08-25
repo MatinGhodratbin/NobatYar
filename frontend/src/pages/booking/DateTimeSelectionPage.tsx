@@ -41,7 +41,7 @@ export default function DateTimeSelectionPage() {
         start_time: selectedSlot.start,
       },
       {
-        onSuccess: () => navigate('/booking/confirmation'),
+        onSuccess: (data) => navigate(`/booking/queue/${data.appointment.id}`),
         onError: () => setNetworkError(true),
       }
     );
