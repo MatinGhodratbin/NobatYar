@@ -80,7 +80,37 @@ services:
       - mysql
       - redis
     networks:
-      - nobatyar    
+      - nobatyar
+
+  queue-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nobatyar_queue_worker
+    command: php artisan queue:work --tries=3 --backoff=5
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nobatyar
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nobatyar_scheduler
+    command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nobatyar
 
 networks:
   nobatyar:
