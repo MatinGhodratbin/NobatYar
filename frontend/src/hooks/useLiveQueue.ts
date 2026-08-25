@@ -13,6 +13,7 @@ export interface QueueStatus {
 
 export function useLiveQueue(appointmentId?: number) {
   const [liveStatus, setLiveStatus] = useState<QueueStatus | null>(null);
+  const [reminderMessage, setReminderMessage] = useState<string | null>(null);
 
   const initialQuery = useQuery({
     queryKey: ['queue', appointmentId],
@@ -30,6 +31,10 @@ export function useLiveQueue(appointmentId?: number) {
       setLiveStatus(payload);
     });
 
+    channel.listen('.reminder.due', (payload: { message: string }) => {
+      setReminderMessage(payload.message);
+    });
+
     return () => {
       echo.leave(`appointment.${appointmentId}`);
     };
@@ -37,6 +42,7 @@ export function useLiveQueue(appointmentId?: number) {
 
   return {
     status: liveStatus ?? initialQuery.data ?? null,
+    reminderMessage,
     isLoading: initialQuery.isLoading,
     isError: initialQuery.isError,
     refetch: initialQuery.refetch,
