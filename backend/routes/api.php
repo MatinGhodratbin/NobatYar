@@ -35,6 +35,8 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+Route::get('appointments/{appointment}/queue', [\App\Http\Controllers\Booking\QueueController::class, 'show']);
+
 Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
     Route::get('availability', AvailabilityController::class);
     Route::get('services', [\App\Http\Controllers\Catalog\ServiceController::class, 'index']);
