@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
 
         $middleware->throttleApi();
+        $middleware->alias([
+            'business.access' => \App\Http\Middleware\EnsureBusinessAccess::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
