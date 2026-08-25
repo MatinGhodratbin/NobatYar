@@ -65,6 +65,8 @@ class BookingService
             'cancelled_at' => now(),
         ]);
 
+        $this->queueService->broadcastStatus($appointment);
+
         return $appointment;
     }
 
@@ -73,5 +75,18 @@ class BookingService
         $lastId = Appointment::max('id') ?? 0;
 
         return 'APT-'.($lastId + 1001);
+    }
+
+    public function __construct(private readonly \App\Services\Booking\QueueService $queueService)
+    {
+    }
+
+    public function updateStatus(Appointment $appointment, string $status): Appointment
+    {
+        $appointment->update(['status' => $status]);
+
+        $this->queueService->broadcastStatus($appointment);
+
+        return $appointment->fresh();
     }
 }
