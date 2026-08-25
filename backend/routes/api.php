@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Booking\AppointmentController;
 use App\Http\Controllers\Booking\AvailabilityController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', RegisterController::class)
@@ -36,6 +37,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::get('appointments/{appointment}/queue', [\App\Http\Controllers\Booking\QueueController::class, 'show']);
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
     Route::get('availability', AvailabilityController::class);
