@@ -47,3 +47,24 @@ Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
     Route::post('appointments', [AppointmentController::class, 'store']);
     Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 });
+
+Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(function () {
+    Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'show'])
+        ->middleware('business.access:owner');
+
+    Route::get('appointments', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])
+        ->middleware('business.access:any');
+    Route::patch('appointments/{appointment}/status', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'updateStatus'])
+        ->middleware('business.access:any');
+
+    Route::middleware('business.access:owner')->group(function () {
+        Route::get('services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'index']);
+        Route::post('services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'store']);
+        Route::put('services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'update']);
+        Route::delete('services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'destroy']);
+
+        Route::get('employees', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'index']);
+        Route::post('employees', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'store']);
+        Route::delete('employees/{employee}', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'destroy']);
+    });
+});
