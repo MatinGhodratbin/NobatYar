@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { Avatar } from '@/components/ui/Avatar';
+import { useUpdateMyStatus } from '@/hooks/useEmployeeStatus';
 
 const navItems = [
   { to: '/admin', label: 'داشبورد', end: true },
@@ -13,6 +14,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const { user, clearAuth } = useAuthStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const updateMyStatus = useUpdateMyStatus();
 
   const handleLogout = () => {
     clearAuth();
@@ -77,7 +79,18 @@ export default function AdminLayout() {
 
           <div className="hidden lg:block" />
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {user?.role === 'employee' && (
+              <select
+                defaultValue="working"
+                onChange={(e) => updateMyStatus.mutate(e.target.value as 'working' | 'resting' | 'off')}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+              >
+                <option value="working">در حال کار</option>
+                <option value="resting">استراحت</option>
+                <option value="off">غیرفعال</option>
+              </select>
+            )}
             <span className="text-sm text-gray-600 hidden sm:block">{user?.name}</span>
             {user && <Avatar name={user.name} size="sm" />}
           </div>
