@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { useMyBusiness } from '@/hooks/useMyBusiness';
 import { useDashboard } from '@/hooks/useAdminBusiness';
+import { EmployeeStatusList } from '@/components/admin/EmployeeStatusList';
 
 function toRial(n: number) {
   return n.toLocaleString('fa-IR');
@@ -31,13 +32,18 @@ export default function DashboardPage() {
         <p className="text-sm text-gray-500">نگاهی به عملکرد امروز کسب‌وکار شما می‌اندازیم</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {statCards(data).map((card) => (
-          <div key={card.label} className="rounded-xl border border-gray-100 bg-white p-4">
-            <p className="text-xs text-gray-400">{card.label}</p>
-            <p className="mt-1 text-lg font-bold text-gray-800">{card.value}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-1">
+          <EmployeeStatusList businessId={business?.id} />
+        </div>
+        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {statCards(data).map((card) => (
+            <div key={card.label} className="rounded-xl border border-gray-100 bg-white p-4">
+              <p className="text-xs text-gray-400">{card.label}</p>
+              <p className="mt-1 text-lg font-bold text-gray-800">{card.value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
