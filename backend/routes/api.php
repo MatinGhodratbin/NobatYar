@@ -70,3 +70,6 @@ Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(
 });
 
 Route::get('my-business', \App\Http\Controllers\MyBusinessController::class);
+
+Route::post('business/onboarding', [\App\Http\Controllers\Onboarding\BusinessOnboardingController::class, 'store']);
+
