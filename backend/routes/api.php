@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('employees', [EmployeeController::class, 'index']);
     Route::get('my-business', MyBusinessController::class);
     Route::post('business/onboarding', [BusinessOnboardingController::class, 'store']);
+    Route::patch('my-employee/status', [\App\Http\Controllers\MyEmployeeStatusController::class, 'update']);
 });
 
 /*
