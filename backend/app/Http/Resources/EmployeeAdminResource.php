@@ -16,6 +16,7 @@ class EmployeeAdminResource extends JsonResource
             'phone' => $this->user->phone,
             'position' => $this->position,
             'is_active' => $this->is_active,
+            'status' => $this->status,
             'services' => $this->whenLoaded('services', fn () => $this->services->pluck('name')),
         ];
     }
