@@ -18,6 +18,7 @@ class Employee extends Model
         'position',
         'avatar_path',
         'is_active',
+        'status',
     ];
 
     protected function casts(): array
