@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAppointmentController;
+use App\Http\Controllers\Admin\AdminEmployeeController;
+use App\Http\Controllers\Admin\AdminServiceController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -7,9 +11,19 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Booking\AppointmentController;
 use App\Http\Controllers\Booking\AvailabilityController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Booking\QueueController;
+use App\Http\Controllers\Catalog\EmployeeController;
+use App\Http\Controllers\Catalog\ServiceController;
+use App\Http\Controllers\MyBusinessController;
+use App\Http\Controllers\Onboarding\BusinessOnboardingController;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| احراز هویت (فاز ۲ و ۳)
+|--------------------------------------------------------------------------
+*/
 Route::prefix('auth')->group(function () {
     Route::post('register', RegisterController::class)
         ->middleware('throttle:auth-sensitive');
@@ -36,40 +50,59 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::get('appointments/{appointment}/queue', [\App\Http\Controllers\Booking\QueueController::class, 'show']);
-
+/*
+|--------------------------------------------------------------------------
+| احراز هویت کانال‌های Broadcasting (فاز ۶)
+|--------------------------------------------------------------------------
+*/
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
-Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
-    Route::get('availability', AvailabilityController::class);
-    Route::get('services', [\App\Http\Controllers\Catalog\ServiceController::class, 'index']);
-    Route::get('employees', [\App\Http\Controllers\Catalog\EmployeeController::class, 'index']);
-    Route::post('appointments', [AppointmentController::class, 'store']);
-    Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+/*
+|--------------------------------------------------------------------------
+| کاتالوگ عمومی + کسب‌وکار کاربر + Onboarding (فاز ۵، ۷.۲، ۷.۳)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('services', [ServiceController::class, 'index']);
+    Route::get('employees', [EmployeeController::class, 'index']);
+    Route::get('my-business', MyBusinessController::class);
+    Route::post('business/onboarding', [BusinessOnboardingController::class, 'store']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| رزرو نوبت (فاز ۴ و ۶)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
+    Route::get('availability', AvailabilityController::class);
+    Route::post('appointments', [AppointmentController::class, 'store']);
+    Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+    Route::get('appointments/{appointment}/queue', [QueueController::class, 'show']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| پنل ادمین (فاز ۷.۱)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(function () {
-    Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'show'])
+    Route::get('dashboard', [DashboardController::class, 'show'])
         ->middleware('business.access:owner');
 
-    Route::get('appointments', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])
+    Route::get('appointments', [AdminAppointmentController::class, 'index'])
         ->middleware('business.access:any');
-    Route::patch('appointments/{appointment}/status', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'updateStatus'])
+    Route::patch('appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus'])
         ->middleware('business.access:any');
 
     Route::middleware('business.access:owner')->group(function () {
-        Route::get('services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'index']);
-        Route::post('services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'store']);
-        Route::put('services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'update']);
-        Route::delete('services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'destroy']);
+        Route::get('services', [AdminServiceController::class, 'index']);
+        Route::post('services', [AdminServiceController::class, 'store']);
+        Route::put('services/{service}', [AdminServiceController::class, 'update']);
+        Route::delete('services/{service}', [AdminServiceController::class, 'destroy']);
 
-        Route::get('employees', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'index']);
-        Route::post('employees', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'store']);
-        Route::delete('employees/{employee}', [\App\Http\Controllers\Admin\AdminEmployeeController::class, 'destroy']);
+        Route::get('employees', [AdminEmployeeController::class, 'index']);
+        Route::post('employees', [AdminEmployeeController::class, 'store']);
+        Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy']);
     });
 });
-
-Route::get('my-business', \App\Http\Controllers\MyBusinessController::class);
-
-Route::post('business/onboarding', [\App\Http\Controllers\Onboarding\BusinessOnboardingController::class, 'store']);
-
