@@ -14,7 +14,11 @@ export default function RegisterPage() {
 
     register.mutate(form, {
       onSuccess: () => navigate('/booking'),
-      onError: () => setError('ثبت‌نام ناموفق بود. لطفاً اطلاعات را بررسی کنید.'),
+      onError: (err: any) => {
+        const apiErrors = err?.response?.data?.errors;
+        const firstMessage = apiErrors ? Object.values(apiErrors)[0] as string[] : null;
+        setError(firstMessage?.[0] ?? err?.response?.data?.message ?? 'ثبت‌نام ناموفق بود. لطفاً اطلاعات را بررسی کنید.');
+      },
     });
   };
 
