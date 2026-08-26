@@ -129,6 +129,15 @@ export default function ServiceSelectionPage() {
             nextDisabled={!canProceed}
           />
         </div>
+
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => navigate('/onboarding/business')}
+            className="text-sm text-gray-400 hover:text-primary-600 underline"
+          >
+            صاحب یک کسب‌وکار هستید؟ ثبت‌نام کنید
+          </button>
+        </div>
       </div>
     </div>
   );
