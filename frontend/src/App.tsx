@@ -6,6 +6,7 @@ import DateTimeSelectionPage from '@/pages/booking/DateTimeSelectionPage';
 import LiveQueuePage from '@/pages/booking/LiveQueuePage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/pages/admin/AdminLayout';
+import BusinessOnboardingPage from '@/pages/onboarding/BusinessOnboardingPage';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import AppointmentsManagementPage from '@/pages/admin/AppointmentsManagementPage';
 import SettingsPage from '@/pages/admin/SettingsPage';
@@ -21,6 +22,10 @@ function App() {
         <Route path="/booking" element={<ServiceSelectionPage />} />
         <Route path="/booking/datetime" element={<DateTimeSelectionPage />} />
         <Route path="/booking/queue/:appointmentId" element={<LiveQueuePage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={['customer', 'business_owner']} />}>
+        <Route path="/onboarding/business" element={<BusinessOnboardingPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['business_owner', 'employee']} />}>
