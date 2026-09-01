@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Catalog;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
+use App\Http\Resources\ServiceResource;
+use App\Models\Business;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,11 +12,18 @@ class ServiceController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $services = Service::query()
+        $business = Business::where('slug', $request->query('business_slug'))
             ->where('is_active', true)
-            ->when($request->query('business_id'), fn ($q, $id) => $q->where('business_id', $id))
+            ->firstOrFail();
+
+        $services = $business->services()
+            ->where('is_active', true)
+            ->when(
+                $request->query('search'),
+                fn ($q, $search) => $q->where('name', 'like', "%{$search}%")
+            )
             ->get();
 
-        return response()->json($services);
+        return response()->json(ServiceResource::collection($services));
     }
 }
