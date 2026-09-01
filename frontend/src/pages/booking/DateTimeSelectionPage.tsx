@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAvailability, useCreateAppointment } from '@/hooks/useBookingData';
 import { useBookingStore } from '@/store/bookingStore';
 import { StepIndicator } from '@/components/booking/StepIndicator';
@@ -15,6 +15,7 @@ function toISODate(d: Date) {
 
 export default function DateTimeSelectionPage() {
   const navigate = useNavigate();
+  const { businessSlug } = useParams<{ businessSlug: string }>();
   const { service, employee, date, slot, setDateSlot } = useBookingStore();
   const [selectedDate, setSelectedDate] = useState<string>(date ?? toISODate(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(slot);
@@ -24,7 +25,7 @@ export default function DateTimeSelectionPage() {
   const createAppointment = useCreateAppointment();
 
   if (!service || !employee) {
-    navigate('/booking');
+    navigate(`/b/${businessSlug}/booking`);
     return null;
   }
 
