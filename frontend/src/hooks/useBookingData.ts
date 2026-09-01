@@ -2,19 +2,29 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import type { Service, Employee, AvailabilityResponse, Appointment } from '@/types';
 
-export function useServices() {
+export function useServices(businessSlug?: string, search?: string) {
   return useQuery({
-    queryKey: ['services'],
-    queryFn: async () => (await api.get<Service[]>('/services')).data,
+    queryKey: ['services', businessSlug, search],
+    queryFn: async () =>
+      (
+        await api.get<Service[]>('/services', {
+          params: { business_slug: businessSlug, search: search || undefined },
+        })
+      ).data,
+    enabled: !!businessSlug,
   });
 }
 
-export function useEmployees(serviceId?: number) {
+export function useEmployees(businessSlug?: string, serviceId?: number) {
   return useQuery({
-    queryKey: ['employees', serviceId],
+    queryKey: ['employees', businessSlug, serviceId],
     queryFn: async () =>
-      (await api.get<Employee[]>('/employees', { params: { service_id: serviceId } })).data,
-    enabled: !!serviceId,
+      (
+        await api.get<Employee[]>('/employees', {
+          params: { business_slug: businessSlug, service_id: serviceId },
+        })
+      ).data,
+    enabled: !!businessSlug && !!serviceId,
   });
 }
 
