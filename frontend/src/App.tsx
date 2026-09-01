@@ -1,12 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
+import BusinessSearchPage from '@/pages/search/BusinessSearchPage';
 import ServiceSelectionPage from '@/pages/booking/ServiceSelectionPage';
 import DateTimeSelectionPage from '@/pages/booking/DateTimeSelectionPage';
 import LiveQueuePage from '@/pages/booking/LiveQueuePage';
+import BusinessOnboardingPage from '@/pages/onboarding/BusinessOnboardingPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/pages/admin/AdminLayout';
-import BusinessOnboardingPage from '@/pages/onboarding/BusinessOnboardingPage';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import AppointmentsManagementPage from '@/pages/admin/AppointmentsManagementPage';
 import SettingsPage from '@/pages/admin/SettingsPage';
@@ -14,13 +15,14 @@ import SettingsPage from '@/pages/admin/SettingsPage';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/booking" replace />} />
+      <Route path="/" element={<Navigate to="/search" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
       <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
-        <Route path="/booking" element={<ServiceSelectionPage />} />
-        <Route path="/booking/datetime" element={<DateTimeSelectionPage />} />
+        <Route path="/search" element={<BusinessSearchPage />} />
+        <Route path="/b/:businessSlug/booking" element={<ServiceSelectionPage />} />
+        <Route path="/b/:businessSlug/booking/datetime" element={<DateTimeSelectionPage />} />
         <Route path="/booking/queue/:appointmentId" element={<LiveQueuePage />} />
       </Route>
 
