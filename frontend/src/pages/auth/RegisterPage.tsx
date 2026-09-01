@@ -13,7 +13,7 @@ export default function RegisterPage() {
     setError(null);
 
     register.mutate(form, {
-      onSuccess: () => navigate('/booking'),
+      onSuccess: () => navigate('/search'),
       onError: (err: any) => {
         const apiErrors = err?.response?.data?.errors;
         const firstMessage = apiErrors ? Object.values(apiErrors)[0] as string[] : null;

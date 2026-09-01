@@ -17,7 +17,7 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: (data) => {
-          navigate(data.user.role === 'customer' ? '/booking' : '/admin');
+          navigate(data.user.role === 'customer' ? '/search' : '/admin');
         },
         onError: () => setError('ایمیل یا رمز عبور اشتباه است.'),
       }
