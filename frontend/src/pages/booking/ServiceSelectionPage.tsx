@@ -1,8 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useServices, useEmployees } from '@/hooks/useBookingData';
+import { useBusinessBySlug } from '@/hooks/useBusinessCatalog';
 import { useBookingStore } from '@/store/bookingStore';
 import { StepIndicator } from '@/components/booking/StepIndicator';
 import { BookingSummary } from '@/components/booking/BookingSummary';
+import { Header } from '@/components/layout/Header';
 import { Avatar } from '@/components/ui/Avatar';
 import type { Service, Employee } from '@/types';
 
@@ -12,35 +15,50 @@ function toRial(price: number) {
 
 export default function ServiceSelectionPage() {
   const navigate = useNavigate();
-  const { data: services, isLoading: servicesLoading } = useServices();
+  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const [localSearch, setLocalSearch] = useState('');
+
+  const { data: business, isError: businessError } = useBusinessBySlug(businessSlug);
+  const { data: services, isLoading: servicesLoading } = useServices(businessSlug, localSearch);
   const { service, employee, setService, setEmployee } = useBookingStore();
-  const { data: employees, isLoading: employeesLoading } = useEmployees(service?.id);
+  const { data: employees, isLoading: employeesLoading } = useEmployees(businessSlug, service?.id);
 
-  const handleSelectService = (s: Service) => {
-    setService(s);
-  };
+  if (businessError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-center px-4">
+        <p className="text-sm text-red-600">کسب‌وکاری با این آدرس یافت نشد.</p>
+        <button onClick={() => navigate('/search')} className="text-sm text-primary-600 underline">
+          بازگشت به جستجو
+        </button>
+      </div>
+    );
+  }
 
-  const handleSelectEmployee = (e: Employee) => {
-    setEmployee(e);
-  };
-
+  const handleSelectService = (s: Service) => setService(s);
+  const handleSelectEmployee = (e: Employee) => setEmployee(e);
   const canProceed = !!service && !!employee;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32 lg:pb-8">
+      <Header
+        onSearch={setLocalSearch}
+        searchPlaceholder={`جستجو در خدمات ${business ? business.name : ''}...`}
+      />
+
       <div className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6">
           <StepIndicator current={1} />
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ثبت نوبت جدید</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          {business ? `ثبت نوبت جدید — ${business.name}` : 'ثبت نوبت جدید'}
+        </h1>
         <p className="mt-1 text-sm text-gray-500">خدمت مورد نظر و آرایشگر خود را برای رزرو انتخاب کنید</p>
 
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div className="flex-1 space-y-8">
-            {/* خدمات — گرید ریسپانسیو: موبایل تک‌ستونه، دسکتاپ ۲ ستونه */}
             <section>
-              <h2 className="mb-3 font-bold text-gray-800">خدمات محبوب</h2>
+              <h2 className="mb-3 font-bold text-gray-800">خدمات {localSearch ? 'یافت‌شده' : 'محبوب'}</h2>
 
               {servicesLoading && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -52,7 +70,9 @@ export default function ServiceSelectionPage() {
 
               {!servicesLoading && services?.length === 0 && (
                 <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
-                  در حال حاضر خدمتی برای این کسب‌وکار ثبت نشده است.
+                  {localSearch
+                    ? `خدمتی با عبارت «${localSearch}» یافت نشد.`
+                    : 'در حال حاضر خدمتی برای این کسب‌وکار ثبت نشده است.'}
                 </div>
               )}
 
@@ -82,7 +102,6 @@ export default function ServiceSelectionPage() {
               </div>
             </section>
 
-            {/* متخصصان — موبایل: اسکرول افقی، دسکتاپ: گرید */}
             {service && (
               <section>
                 <h2 className="mb-3 font-bold text-gray-800">انتخاب آرایشگر/متخصص</h2>
@@ -125,7 +144,7 @@ export default function ServiceSelectionPage() {
           </div>
 
           <BookingSummary
-            onNext={() => navigate('/booking/datetime')}
+            onNext={() => navigate(`/b/${businessSlug}/booking/datetime`)}
             nextDisabled={!canProceed}
           />
         </div>
