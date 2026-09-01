@@ -63,9 +63,10 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('businesses', [\App\Http\Controllers\Catalog\BusinessController::class, 'index']);
+    Route::get('businesses/{slug}', [\App\Http\Controllers\Catalog\BusinessController::class, 'show']);
     Route::get('services', [ServiceController::class, 'index']);
-    Route::get('employees', [EmployeeController::class, 'index']);
-    Route::get('my-business', MyBusinessController::class);
+    Route::get('employees', [EmployeeController::class, 'index']);    Route::get('my-business', MyBusinessController::class);
     Route::post('business/onboarding', [BusinessOnboardingController::class, 'store']);
     Route::patch('my-employee/status', [\App\Http\Controllers\MyEmployeeStatusController::class, 'update']);
 });
