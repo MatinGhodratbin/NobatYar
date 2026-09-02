@@ -20,10 +20,13 @@ class AvailabilityController extends Controller
         $employee = Employee::findOrFail($request->integer('employee_id'));
         $service = Service::findOrFail($request->integer('service_id'));
 
+        $timezone = $employee->business->timezone ?? 'UTC';
+
         $slots = $this->availabilityService->getAvailableSlots(
             $employee,
             $service,
-            $request->string('date')->toString()
+            $request->string('date')->toString(),
+            $timezone
         );
 
         return response()->json([

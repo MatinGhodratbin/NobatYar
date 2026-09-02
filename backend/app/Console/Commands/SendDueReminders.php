@@ -15,17 +15,19 @@ class SendDueReminders extends Command
 
     public function handle(): int
     {
-        $now = CarbonImmutable::now();
-        $windowEnd = $now->addMinutes(30);
-
         $appointments = Appointment::query()
-            ->whereDate('appointment_date', $now->toDateString())
             ->whereNull('reminded_at')
             ->whereNotIn('status', ['cancelled', 'completed'])
+            ->with('business')
             ->get()
-            ->filter(function (Appointment $appointment) use ($now, $windowEnd) {
+            ->filter(function (Appointment $appointment) {
+                $timezone = $appointment->business->timezone ?? 'UTC';
+                $now = CarbonImmutable::now($timezone);
+                $windowEnd = $now->addMinutes(30);
+
                 $startsAt = CarbonImmutable::parse(
-                    $appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time
+                    $appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time,
+                    $timezone
                 );
 
                 return $startsAt->between($now, $windowEnd);

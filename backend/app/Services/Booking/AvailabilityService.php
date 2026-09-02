@@ -9,9 +9,9 @@ use Carbon\CarbonImmutable;
 
 class AvailabilityService
 {
-    public function getAvailableSlots(Employee $employee, Service $service, string $date): array
+    public function getAvailableSlots(Employee $employee, Service $service, string $date, string $timezone = 'UTC'): array
     {
-        $carbonDate = Carbon::parse($date);
+        $carbonDate = Carbon::parse($date, $timezone);
         $dayOfWeek = $this->toDayOfWeek($carbonDate);
 
         $workingHour = $employee->workingHours()
@@ -31,8 +31,10 @@ class AvailabilityService
             ->get(['start_time', 'end_time']);
 
         $slots = [];
-        $cursor = CarbonImmutable::parse($date.' '.$workingHour->start_time);
-        $end = CarbonImmutable::parse($date.' '.$workingHour->end_time);
+        $cursor = CarbonImmutable::parse($date.' '.$workingHour->start_time, $timezone);
+        $end = CarbonImmutable::parse($date.' '.$workingHour->end_time, $timezone);
+
+        $now = CarbonImmutable::now($timezone);
 
         while ($cursor->addMinutes($duration)->lte($end)) {
             $candidateStart = $cursor;
@@ -45,7 +47,7 @@ class AvailabilityService
                 return $candidateStart->lt($existingEnd) && $candidateEnd->gt($existingStart);
             });
 
-            $isPast = $candidateStart->lt(CarbonImmutable::now());
+            $isPast = $candidateStart->lt($now);
 
             if (! $hasOverlap && ! $isPast) {
                 $slots[] = [
