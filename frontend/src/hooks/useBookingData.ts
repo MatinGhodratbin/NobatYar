@@ -1,14 +1,17 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { useDebounce } from './useDebounce';
 import type { Service, Employee, AvailabilityResponse, Appointment } from '@/types';
 
 export function useServices(businessSlug?: string, search?: string) {
+  const debouncedSearch = useDebounce(search, 300);
+
   return useQuery({
-    queryKey: ['services', businessSlug, search],
+    queryKey: ['services', businessSlug, debouncedSearch],
     queryFn: async () =>
       (
         await api.get<Service[]>('/services', {
-          params: { business_slug: businessSlug, search: search || undefined },
+          params: { business_slug: businessSlug, search: debouncedSearch || undefined },
         })
       ).data,
     enabled: !!businessSlug,

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { useDebounce } from './useDebounce';
 
 export interface BusinessSummary {
   id: number;
@@ -12,10 +13,12 @@ export interface BusinessSummary {
 }
 
 export function useBusinessSearch(search: string) {
+  const debouncedSearch = useDebounce(search, 300);
+
   return useQuery({
-    queryKey: ['businesses', 'search', search],
+    queryKey: ['businesses', 'search', debouncedSearch],
     queryFn: async () =>
-      (await api.get<{ data: BusinessSummary[] }>('/businesses', { params: { search: search || undefined } })).data,
+      (await api.get<{ data: BusinessSummary[] }>('/businesses', { params: { search: debouncedSearch || undefined } })).data,
   });
 }
 

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { useDebounce } from './useDebounce';
 
 export interface AdminDashboard {
   total_appointments: number;
@@ -41,12 +42,14 @@ export function useAdminAppointments(
   businessId?: number,
   filters?: { status?: string; date?: string; search?: string }
 ) {
+  const debouncedSearch = useDebounce(filters?.search, 300);
+
   return useQuery({
-    queryKey: ['admin', businessId, 'appointments', filters],
+    queryKey: ['admin', businessId, 'appointments', { ...filters, search: debouncedSearch }],
     queryFn: async () =>
       (
         await api.get<{ data: AdminAppointment[] }>(`/admin/businesses/${businessId}/appointments`, {
-          params: filters,
+          params: { ...filters, search: debouncedSearch || undefined },
         })
       ).data,
     enabled: !!businessId,
