@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQueue } from '@/hooks/useLiveQueue';
+import { useCancelAppointment } from '@/hooks/useCancelAppointment';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { CompletedState } from '@/components/booking/CompletedState';
 
 const statusLabels: Record<string, string> = {
@@ -29,6 +32,8 @@ export default function LiveQueuePage() {
   const { status, reminderMessage, isLoading, isError, refetch } = useLiveQueue(
     appointmentId ? Number(appointmentId) : undefined
   );
+  const cancelAppointment = useCancelAppointment();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center text-gray-400">در حال بارگذاری...</div>;
@@ -46,17 +51,51 @@ export default function LiveQueuePage() {
   }
 
   if (status.status === 'completed') {
-    return <CompletedState onBackHome={() => navigate('/booking')} />;
+    return <CompletedState onBackHome={() => navigate('/search')} />;
+  }
+
+  if (status.status === 'cancelled') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
+        <div className="rounded-2xl bg-white p-8 text-center shadow-sm border border-gray-100">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900">نوبت لغو شده</h1>
+          <p className="mt-2 text-sm text-gray-500">نوبت شما با موفقیت لغو شد.</p>
+          <button
+            onClick={() => navigate('/search')}
+            className="mt-6 rounded-lg bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition"
+          >
+            بازگشت به صفحه اصلی
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const currentStep = stepIndex(status.status);
+
+  const handleCancel = () => {
+    if (!appointmentId) return;
+    cancelAppointment.mutate(Number(appointmentId), {
+      onSuccess: () => {
+        setShowCancelConfirm(false);
+        refetch();
+      },
+    });
+  };
+
+  const canCancel = ['pending', 'confirmed', 'in_queue'].includes(status.status);
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="mx-auto max-w-lg">
         <h1 className="mb-4 text-xl font-bold text-gray-900">صف زنده نوبت</h1>
 
-        {/* کارت وضعیت اصلی — طبق اصلاح موبایل باید بالای صفحه و کاملاً واضح باشد */}
+        {/* کارت وضعیت اصلی */}
         <div className="rounded-xl bg-primary-600 p-5 text-white">
           <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs">
             {statusLabels[status.status]}
@@ -81,7 +120,7 @@ export default function LiveQueuePage() {
           </div>
         </div>
 
-        {/* تایم‌لاین — نسخه‌ی موبایل جمع‌وجورتر (فاصله کمتر، بدون توضیح اضافه) */}
+        {/* تایم‌لاین */}
         <div className="mt-6 rounded-xl border border-gray-100 bg-white p-4">
           <h2 className="mb-3 text-sm font-bold text-gray-700">تاریخچه مراحل</h2>
           <div className="space-y-3">
@@ -99,12 +138,33 @@ export default function LiveQueuePage() {
             ))}
           </div>
         </div>
+
+        {/* دکمه لغو */}
+        {canCancel && (
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="mt-6 w-full rounded-lg border border-red-200 bg-white py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+          >
+            لغو نوبت
+          </button>
+        )}
       </div>
+
       {reminderMessage && (
         <div className="fixed bottom-6 left-1/2 z-30 w-[90%] max-w-sm -translate-x-1/2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 shadow-lg text-center">
           <p className="text-sm text-amber-800">{reminderMessage}</p>
-      </div>
+        </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={showCancelConfirm}
+        title="لغو نوبت"
+        message="آیا از لغو این نوبت اطمینان دارید؟ این عمل قابل بازگشت نیست."
+        confirmLabel={cancelAppointment.isPending ? 'در حال لغو...' : 'بله، لغو شود'}
+        onConfirm={handleCancel}
+        onCancel={() => setShowCancelConfirm(false)}
+        isLoading={cancelAppointment.isPending}
+      />
     </div>
   );
 }
