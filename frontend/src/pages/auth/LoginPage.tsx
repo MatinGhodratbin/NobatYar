@@ -17,6 +17,10 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: (data) => {
+          if (!data?.user) {
+            setError('پاسخ نامعتبر از سرور دریافت شد.');
+            return;
+          }
           navigate(data.user.role === 'customer' ? '/search' : '/admin');
         },
         onError: () => setError('ایمیل یا رمز عبور اشتباه است.'),
