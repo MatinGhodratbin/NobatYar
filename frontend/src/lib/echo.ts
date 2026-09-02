@@ -11,11 +11,21 @@ declare global {
 window.Pusher = Pusher;
 
 let echoInstance: Echo<'reverb'> | null = null;
+let lastToken: string | null = null;
 
 export function getEcho(): Echo<'reverb'> {
-  if (echoInstance) return echoInstance;
+  const currentToken = useAuthStore.getState().token;
 
-  const token = useAuthStore.getState().token;
+  if (echoInstance && currentToken === lastToken) {
+    return echoInstance;
+  }
+
+  if (echoInstance) {
+    echoInstance.disconnect();
+    echoInstance = null;
+  }
+
+  lastToken = currentToken;
 
   echoInstance = new Echo({
     broadcaster: 'reverb',
@@ -26,7 +36,7 @@ export function getEcho(): Echo<'reverb'> {
     enabledTransports: ['ws', 'wss'],
     authEndpoint: `${import.meta.env.VITE_API_URL ?? '/api'}/broadcasting/auth`,
     auth: {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${currentToken}` },
     },
   });
 
@@ -36,4 +46,5 @@ export function getEcho(): Echo<'reverb'> {
 export function disconnectEcho(): void {
   echoInstance?.disconnect();
   echoInstance = null;
+  lastToken = null;
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { disconnectEcho } from '@/lib/echo';
 import { Avatar } from '@/components/ui/Avatar';
 import { useUpdateMyStatus } from '@/hooks/useEmployeeStatus';
 
@@ -17,6 +18,7 @@ export default function AdminLayout() {
   const updateMyStatus = useUpdateMyStatus();
 
   const handleLogout = () => {
+    disconnectEcho();
     clearAuth();
     navigate('/login');
   };
