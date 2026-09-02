@@ -23,6 +23,7 @@ class Appointment extends Model
         'price',
         'notes',
         'cancelled_at',
+        'reminded_at',
     ];
 
     protected function casts(): array

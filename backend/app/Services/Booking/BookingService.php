@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BookingService
 {
@@ -23,8 +24,27 @@ class BookingService
      */
     public function book(User $customer, Employee $employee, Service $service, string $date, string $startTime): Appointment
     {
-        return DB::transaction(function () use ($customer, $employee, $service, $date, $startTime) {
-            $endTime = CarbonImmutable::parse($date.' '.$startTime)
+        $timezone = $employee->business->timezone ?? 'UTC';
+
+        // بررسی اعتبار روابط دامنه
+        if (! $employee->business->is_active) {
+            throw new SlotUnavailableException('کسب‌وکار موردنظر غیرفعال است.');
+        }
+
+        if (! $employee->is_active) {
+            throw new SlotUnavailableException('پرسنل موردنظر غیرفعال است.');
+        }
+
+        if (! $service->is_active) {
+            throw new SlotUnavailableException('خدمت موردنظر غیرفعال است.');
+        }
+
+        if (! $employee->services()->where('services.id', $service->id)->exists()) {
+            throw new SlotUnavailableException('پرسنل موردنظر این خدمت را ارائه نمی‌دهد.');
+        }
+
+        return DB::transaction(function () use ($customer, $employee, $service, $date, $startTime, $timezone) {
+            $endTime = CarbonImmutable::parse($date.' '.$startTime, $timezone)
                 ->addMinutes($service->duration_minutes)
                 ->format('H:i:s');
 
@@ -60,10 +80,18 @@ class BookingService
 
     public function cancel(Appointment $appointment): Appointment
     {
+        $cancellableStatuses = ['pending', 'confirmed', 'in_queue'];
+
+        if (! in_array($appointment->status, $cancellableStatuses)) {
+            throw new \App\Exceptions\SlotUnavailableException('این نوبت قابل لغو نیست.');
+        }
+
         $appointment->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
         ]);
+
+        $appointment->refresh();
 
         $this->queueService->broadcastStatus($appointment);
 
@@ -72,9 +100,10 @@ class BookingService
 
     private function generateCode(): string
     {
-        $lastId = Appointment::max('id') ?? 0;
+        $date = now()->format('ymd');
+        $random = strtoupper(Str::random(6));
 
-        return 'APT-'.($lastId + 1001);
+        return "APT-{$date}-{$random}";
     }
 
     public function __construct(private readonly \App\Services\Booking\QueueService $queueService)
