@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,6 +16,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // اصلاح لینک‌های تأیید ایمیل برای استفاده از APP_URL
+        URL::forceRootUrl(config('app.url'));
+
         // محدودیت عمومی برای کل API: هر کاربر (یا IP در صورت مهمان) ۶۰ درخواست در دقیقه
         RateLimiter::for('api', function ($request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
