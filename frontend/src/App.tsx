@@ -6,6 +6,7 @@ import ServiceSelectionPage from '@/pages/booking/ServiceSelectionPage';
 import DateTimeSelectionPage from '@/pages/booking/DateTimeSelectionPage';
 import LiveQueuePage from '@/pages/booking/LiveQueuePage';
 import BusinessOnboardingPage from '@/pages/onboarding/BusinessOnboardingPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
@@ -37,6 +38,8 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
