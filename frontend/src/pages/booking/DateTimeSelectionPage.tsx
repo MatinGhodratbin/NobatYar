@@ -22,9 +22,20 @@ export default function DateTimeSelectionPage() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(slot);
   const [networkError, setNetworkError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [fullyBookedDates, setFullyBookedDates] = useState<string[]>([]);
 
   const { data, isLoading, isError, refetch } = useAvailability(employee?.id, service?.id, selectedDate);
   const createAppointment = useCreateAppointment();
+
+  useEffect(() => {
+    if (!isLoading && data && data.slots.length === 0 && selectedDate) {
+      setFullyBookedDates((prev) =>
+        prev.includes(selectedDate) ? prev : [...prev, selectedDate]
+      );
+    } else if (!isLoading && data && data.slots.length > 0) {
+      setFullyBookedDates((prev) => prev.filter((d) => d !== selectedDate));
+    }
+  }, [data, isLoading, selectedDate]);
 
   useEffect(() => {
     if (!service || !employee) {
@@ -93,7 +104,7 @@ export default function DateTimeSelectionPage() {
 
             <section>
               <h2 className="mb-3 font-bold text-gray-800">انتخاب تاریخ</h2>
-              <Calendar selectedDate={selectedDate} onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }} />
+              <Calendar selectedDate={selectedDate} onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }} fullyBookedDates={fullyBookedDates} />
             </section>
 
             <section>

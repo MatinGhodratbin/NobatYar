@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Business;
 use App\Models\Employee;
 use App\Models\User;
+use App\Models\WorkingHour;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -33,6 +34,17 @@ class EmployeeOnboardingService
 
         if (! empty($data['service_ids'])) {
             $employee->services()->sync($data['service_ids']);
+        }
+
+        // ایجاد ساعات کاری پیش‌فرض (شنبه تا پنجشنبه ۹-۱۷، جمعه استراحت)
+        for ($day = 0; $day < 7; $day++) {
+            WorkingHour::create([
+                'employee_id' => $employee->id,
+                'day_of_week' => $day,
+                'start_time' => $day === 6 ? null : '09:00',
+                'end_time' => $day === 6 ? null : '17:00',
+                'is_day_off' => $day === 6,
+            ]);
         }
 
         return $employee->load(['user', 'services']);

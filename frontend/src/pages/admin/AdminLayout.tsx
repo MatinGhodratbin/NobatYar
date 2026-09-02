@@ -5,12 +5,13 @@ import { disconnectEcho } from '@/lib/echo';
 import { Avatar } from '@/components/ui/Avatar';
 import { useUpdateMyStatus } from '@/hooks/useEmployeeStatus';
 
-const navItems = [
-  { to: '/admin', label: 'داشبورد', end: true },
-  { to: '/admin/appointments', label: 'نوبت‌ها' },
-  { to: '/admin/services', label: 'سرویس‌ها' },
-  { to: '/admin/employees', label: 'کارمندان' },
-  { to: '/admin/settings', label: 'تنظیمات' },
+const allNavItems = [
+  { to: '/admin', label: 'داشبورد', end: true, ownerOnly: false },
+  { to: '/admin/appointments', label: 'نوبت‌ها', ownerOnly: false },
+  { to: '/admin/services', label: 'سرویس‌ها', ownerOnly: true },
+  { to: '/admin/employees', label: 'کارمندان', ownerOnly: true },
+  { to: '/admin/working-hours', label: 'ساعات کاری', ownerOnly: true },
+  { to: '/admin/settings', label: 'تنظیمات', ownerOnly: true },
 ];
 
 export default function AdminLayout() {
@@ -24,6 +25,9 @@ export default function AdminLayout() {
     clearAuth();
     navigate('/login');
   };
+
+  const isOwner = user?.role === 'business_owner';
+  const navItems = allNavItems.filter((item) => !item.ownerOnly || isOwner);
 
   const sidebarContent = (
     <nav className="flex flex-col gap-1 p-4">

@@ -31,3 +31,28 @@ export function useRegister() {
     onSuccess: (data) => setAuth(data.token, data.user),
   });
 }
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (payload: { email: string }) =>
+      (await api.post<{ message: string }>('/auth/forgot-password', payload)).data,
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (payload: {
+      email: string;
+      password: string;
+      password_confirmation: string;
+      token: string;
+    }) => (await api.post<{ message: string }>('/auth/reset-password', payload)).data,
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: async () =>
+      (await api.post<{ message: string }>('/auth/email/resend')).data,
+  });
+}

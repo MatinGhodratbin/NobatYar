@@ -68,6 +68,12 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <p className="mt-3 text-center text-sm">
+          <Link to="/forgot-password" className="text-primary-600 font-medium hover:underline">
+            رمز عبور را فراموش کردید؟
+          </Link>
+        </p>
+
         <p className="mt-4 text-center text-sm text-gray-500">
           حساب کاربری ندارید؟{' '}
           <Link to="/register" className="text-primary-600 font-medium">

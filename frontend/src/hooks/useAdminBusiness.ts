@@ -209,6 +209,27 @@ export function useCreateEmployee(businessId?: number) {
   });
 }
 
+export function useUpdateEmployee(businessId?: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      employeeId,
+      ...payload
+    }: {
+      employeeId: number;
+      name: string;
+      phone?: string;
+      position?: string;
+      service_ids?: number[];
+    }) =>
+      (await api.put(`/admin/businesses/${businessId}/employees/${employeeId}`, payload)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', businessId, 'employees'] });
+    },
+  });
+}
+
 export function useDeleteEmployee(businessId?: number) {
   const queryClient = useQueryClient();
 

@@ -4,9 +4,11 @@ import {
   useAdminEmployees,
   useAdminServices,
   useCreateEmployee,
+  useUpdateEmployee,
   useDeleteEmployee,
   type AdminEmployee,
 } from '@/hooks/useAdminBusiness';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 
 const emptyForm = { name: '', email: '', phone: '', position: '', service_ids: [] as number[] };
 
@@ -15,34 +17,62 @@ export default function EmployeesPage() {
   const { data: employees, isLoading } = useAdminEmployees(business?.id);
   const { data: services } = useAdminServices(business?.id);
   const createEmployee = useCreateEmployee(business?.id);
+  const updateEmployee = useUpdateEmployee(business?.id);
   const deleteEmployee = useDeleteEmployee(business?.id);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
-  const handleSubmit = () => {
-    if (!form.name.trim() || !form.email.trim()) return;
-    createEmployee.mutate(
-      {
-        name: form.name,
-        email: form.email,
-        phone: form.phone || undefined,
-        position: form.position || undefined,
-        service_ids: form.service_ids.length > 0 ? form.service_ids : undefined,
-      },
-      {
-        onSuccess: () => {
-          setShowForm(false);
-          setForm(emptyForm);
-        },
-      }
-    );
+  const startCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowForm(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('آیا از غیرفعال کردن دسترسی این کارمند اطمینان دارید؟')) {
-      deleteEmployee.mutate(id);
+  const startEdit = (emp: AdminEmployee) => {
+    setEditingId(emp.id);
+    setForm({
+      name: emp.name,
+      email: emp.email,
+      phone: emp.phone ?? '',
+      position: emp.position ?? '',
+      service_ids: [],
+    });
+    setShowForm(true);
+  };
+
+  const handleSubmit = () => {
+    if (!form.name.trim() || (!editingId && !form.email.trim())) return;
+    if (editingId) {
+      updateEmployee.mutate(
+        {
+          employeeId: editingId,
+          name: form.name,
+          phone: form.phone || undefined,
+          position: form.position || undefined,
+          service_ids: form.service_ids.length > 0 ? form.service_ids : undefined,
+        },
+        { onSuccess: () => { setShowForm(false); setEditingId(null); } }
+      );
+    } else {
+      createEmployee.mutate(
+        {
+          name: form.name,
+          email: form.email,
+          phone: form.phone || undefined,
+          position: form.position || undefined,
+          service_ids: form.service_ids.length > 0 ? form.service_ids : undefined,
+        },
+        { onSuccess: () => { setShowForm(false); setForm(emptyForm); } }
+      );
     }
+  };
+
+  const handleDelete = () => {
+    if (deleteTarget === null) return;
+    deleteEmployee.mutate(deleteTarget, { onSuccess: () => setDeleteTarget(null) });
   };
 
   const toggleServiceId = (id: number) => {
@@ -62,7 +92,7 @@ export default function EmployeesPage() {
           <p className="text-sm text-gray-500">افزودن و مدیریت دسترسی کارمندان کسب‌وکار</p>
         </div>
         <button
-          onClick={() => { setForm(emptyForm); setShowForm(true); }}
+          onClick={startCreate}
           className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
         >
           + کارمند جدید
@@ -71,7 +101,9 @@ export default function EmployeesPage() {
 
       {showForm && (
         <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-          <h2 className="text-sm font-bold text-gray-700">کارمند جدید</h2>
+          <h2 className="text-sm font-bold text-gray-700">
+            {editingId ? 'ویرایش کارمند' : 'کارمند جدید'}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               placeholder="نام کامل"
@@ -79,13 +111,15 @@ export default function EmployeesPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
-            <input
-              type="email"
-              placeholder="ایمیل"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
+            {!editingId && (
+              <input
+                type="email"
+                placeholder="ایمیل"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+            )}
             <input
               placeholder="شماره تماس (اختیاری)"
               value={form.phone}
@@ -129,13 +163,13 @@ export default function EmployeesPage() {
           <div className="flex gap-2">
             <button
               onClick={handleSubmit}
-              disabled={createEmployee.isPending}
+              disabled={createEmployee.isPending || updateEmployee.isPending}
               className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
-              {createEmployee.isPending ? 'در حال افزودن...' : 'افزودن'}
+              {editingId ? 'ذخیره تغییرات' : createEmployee.isPending ? 'در حال افزودن...' : 'افزودن'}
             </button>
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => { setShowForm(false); setEditingId(null); }}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
             >
               انصراف
@@ -190,14 +224,24 @@ export default function EmployeesPage() {
                     </span>
                   </td>
                   <td className="p-3">
-                    {e.is_active && (
-                      <button
-                        onClick={() => handleDelete(e.id)}
-                        className="rounded-lg border border-red-200 px-3 py-1 text-xs text-red-600 hover:bg-red-50"
-                      >
-                        غیرفعال
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                      {e.is_active && (
+                        <>
+                          <button
+                            onClick={() => startEdit(e)}
+                            className="rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                          >
+                            ویرایش
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(e.id)}
+                            className="rounded-lg border border-red-200 px-3 py-1 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            غیرفعال
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -205,6 +249,16 @@ export default function EmployeesPage() {
           </table>
         </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={deleteTarget !== null}
+        title="غیرفعال کردن کارمند"
+        message="آیا از غیرفعال کردن دسترسی این کارمند اطمینان دارید؟"
+        confirmLabel="غیرفعال کردن"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        isLoading={deleteEmployee.isPending}
+      />
     </div>
   );
 }

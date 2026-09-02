@@ -3,17 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useBusinessSearch } from '@/hooks/useBusinessCatalog';
 import { Header } from '@/components/layout/Header';
 import { Avatar } from '@/components/ui/Avatar';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function BusinessSearchPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const { data, isLoading } = useBusinessSearch(search);
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useBusinessSearch(search, page);
 
   const businesses = data?.data ?? [];
+  const meta = data?.meta;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onSearch={setSearch} searchPlaceholder="جستجوی نام سالن یا کسب‌وکار..." />
+      <Header onSearch={(s) => { setSearch(s); setPage(1); }} searchPlaceholder="جستجوی نام سالن یا کسب‌وکار..." />
 
       <div className="mx-auto max-w-4xl px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900">کسب‌وکار مورد نظرتان را پیدا کنید</h1>
@@ -50,6 +53,8 @@ export default function BusinessSearchPage() {
             </button>
           ))}
         </div>
+
+        {meta && <div className="mt-6"><Pagination meta={meta} onPageChange={setPage} /></div>}
       </div>
     </div>
   );

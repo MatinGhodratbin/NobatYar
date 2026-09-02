@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminEmployeeController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\WorkingHoursController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -79,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 Route::middleware('auth:sanctum')->prefix('booking')->group(function () {
     Route::get('availability', AvailabilityController::class);
+    Route::get('my-appointments', [AppointmentController::class, 'myAppointments']);
     Route::post('appointments', [AppointmentController::class, 'store']);
     Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
     Route::get('appointments/{appointment}/queue', [QueueController::class, 'show']);
@@ -106,9 +108,13 @@ Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(
 
         Route::get('employees', [AdminEmployeeController::class, 'index']);
         Route::post('employees', [AdminEmployeeController::class, 'store']);
+        Route::put('employees/{employee}', [AdminEmployeeController::class, 'update']);
         Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy']);
 
         Route::get('settings', [SettingsController::class, 'show']);
         Route::put('settings', [SettingsController::class, 'update']);
+
+        Route::get('working-hours', [WorkingHoursController::class, 'index']);
+        Route::put('working-hours/{employee}', [WorkingHoursController::class, 'update']);
     });
 });

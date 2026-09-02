@@ -19,6 +19,17 @@ class AppointmentController extends Controller
     {
     }
 
+    public function myAppointments(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    {
+        $appointments = Appointment::query()
+            ->where('customer_id', $request->user()->id)
+            ->with(['service', 'employee.user', 'business'])
+            ->latest('appointment_date')
+            ->paginate(10);
+
+        return AppointmentResource::collection($appointments);
+    }
+
     public function store(StoreAppointmentRequest $request): JsonResponse
     {
         $employee = Employee::findOrFail($request->integer('employee_id'));

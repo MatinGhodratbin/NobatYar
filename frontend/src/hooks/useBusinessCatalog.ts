@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
 import { useDebounce } from './useDebounce';
+import type { PaginatedResponse } from './useAdminBusiness';
 
 export interface BusinessSummary {
   id: number;
@@ -12,13 +13,17 @@ export interface BusinessSummary {
   logo_path: string | null;
 }
 
-export function useBusinessSearch(search: string) {
+export function useBusinessSearch(search: string, page = 1) {
   const debouncedSearch = useDebounce(search, 300);
 
   return useQuery({
-    queryKey: ['businesses', 'search', debouncedSearch],
+    queryKey: ['businesses', 'search', debouncedSearch, page],
     queryFn: async () =>
-      (await api.get<{ data: BusinessSummary[] }>('/businesses', { params: { search: debouncedSearch || undefined } })).data,
+      (
+        await api.get<PaginatedResponse<BusinessSummary>>('/businesses', {
+          params: { search: debouncedSearch || undefined, page },
+        })
+      ).data,
   });
 }
 
