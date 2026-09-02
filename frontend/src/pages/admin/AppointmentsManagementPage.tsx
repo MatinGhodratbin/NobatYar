@@ -44,7 +44,6 @@ export default function AppointmentsManagementPage() {
           <option value="">همه وضعیت‌ها</option>
           {statusOptions.map((s) => (
             <option key={s} value={s}>
-              <StatusBadge status={s} />
               {s}
             </option>
           ))}

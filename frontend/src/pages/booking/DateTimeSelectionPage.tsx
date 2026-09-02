@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAvailability, useCreateAppointment } from '@/hooks/useBookingData';
 import { useBookingStore } from '@/store/bookingStore';
 import { StepIndicator } from '@/components/booking/StepIndicator';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { Calendar } from '@/components/booking/Calendar';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { NoSlotsState, NetworkErrorToast } from '@/components/booking/EmptyStates';
 import { Avatar } from '@/components/ui/Avatar';
 import type { TimeSlot } from '@/types';
@@ -20,14 +21,25 @@ export default function DateTimeSelectionPage() {
   const [selectedDate, setSelectedDate] = useState<string>(date ?? toISODate(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(slot);
   const [networkError, setNetworkError] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { data, isLoading, isError, refetch } = useAvailability(employee?.id, service?.id, selectedDate);
   const createAppointment = useCreateAppointment();
 
+  useEffect(() => {
+    if (!service || !employee) {
+      navigate(`/b/${businessSlug}/booking`, { replace: true });
+    }
+  }, [service, employee, navigate, businessSlug]);
+
   if (!service || !employee) {
-    navigate(`/b/${businessSlug}/booking`);
     return null;
   }
+
+  const handleConfirmClick = () => {
+    if (!selectedSlot) return;
+    setShowConfirm(true);
+  };
 
   const handleConfirm = () => {
     if (!selectedSlot) return;
@@ -42,8 +54,14 @@ export default function DateTimeSelectionPage() {
         start_time: selectedSlot.start,
       },
       {
-        onSuccess: (data) => navigate(`/booking/queue/${data.appointment.id}`),
-        onError: () => setNetworkError(true),
+        onSuccess: (data) => {
+          setShowConfirm(false);
+          navigate(`/booking/queue/${data.appointment.id}`);
+        },
+        onError: () => {
+          setShowConfirm(false);
+          setNetworkError(true);
+        },
       }
     );
   };
@@ -136,12 +154,22 @@ export default function DateTimeSelectionPage() {
           </div>
 
           <BookingSummary
-            onNext={handleConfirm}
+            onNext={handleConfirmClick}
             nextLabel={createAppointment.isPending ? 'در حال ثبت...' : 'تایید و نهایی‌سازی رزرو'}
             nextDisabled={!selectedSlot || createAppointment.isPending}
           />
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={showConfirm}
+        title="تأیید رزرو نوبت"
+        message={`آیا از رزرو ${service.name} با ${employee.name} در تاریخ ${selectedDate} ساعت ${selectedSlot?.start} اطمینان دارید؟`}
+        confirmLabel={createAppointment.isPending ? 'در حال ثبت...' : 'تایید و ثبت نوبت'}
+        onConfirm={handleConfirm}
+        onCancel={() => setShowConfirm(false)}
+        isLoading={createAppointment.isPending}
+      />
 
       {(isError || networkError) && (
         <NetworkErrorToast onRetry={() => { setNetworkError(false); refetch(); }} />
