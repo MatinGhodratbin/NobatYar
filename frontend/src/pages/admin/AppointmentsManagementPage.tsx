@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMyBusiness } from '@/hooks/useMyBusiness';
 import { useAdminAppointments, useUpdateAppointmentStatus } from '@/hooks/useAdminBusiness';
 import { StatusBadge } from '@/components/admin/StatusBadge';
+import { Pagination } from '@/components/ui/Pagination';
 
 const statusOptions = ['pending', 'confirmed', 'in_queue', 'in_progress', 'completed', 'cancelled'];
 
@@ -12,15 +13,20 @@ function toRial(n: number) {
 export default function AppointmentsManagementPage() {
   const { data: business } = useMyBusiness();
   const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const { data, isLoading } = useAdminAppointments(business?.id, {
     status: statusFilter || undefined,
+    date: dateFilter || undefined,
     search: search || undefined,
+    page,
   });
   const updateStatus = useUpdateAppointmentStatus(business?.id);
 
   const appointments = data?.data ?? [];
+  const meta = data?.meta;
 
   return (
     <div className="space-y-4">
@@ -33,12 +39,18 @@ export default function AppointmentsManagementPage() {
         <input
           placeholder="جستجوی مشتری یا کد..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        />
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
         />
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
         >
           <option value="">همه وضعیت‌ها</option>
@@ -54,7 +66,7 @@ export default function AppointmentsManagementPage() {
 
       {!isLoading && appointments.length === 0 && (
         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center">
-          <p className="text-sm font-medium text-gray-600">هیچ نوبتی برای امروز مطابق فیلترهای شما ثبت نشده است</p>
+          <p className="text-sm font-medium text-gray-600">هیچ نوبتی مطابق فیلترهای شما ثبت نشده است</p>
         </div>
       )}
 
@@ -65,10 +77,12 @@ export default function AppointmentsManagementPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500">
                 <tr>
+                  <th className="p-3 text-right">کد</th>
                   <th className="p-3 text-right">مشتری</th>
                   <th className="p-3 text-right">سرویس</th>
                   <th className="p-3 text-right">پرسنل</th>
-                  <th className="p-3 text-right">زمان</th>
+                  <th className="p-3 text-right">تاریخ</th>
+                  <th className="p-3 text-right">ساعت</th>
                   <th className="p-3 text-right">مبلغ</th>
                   <th className="p-3 text-right">وضعیت</th>
                   <th className="p-3 text-right">تغییر وضعیت</th>
@@ -77,9 +91,11 @@ export default function AppointmentsManagementPage() {
               <tbody>
                 {appointments.map((a) => (
                   <tr key={a.id} className="border-t border-gray-50">
-                    <td className="p-3">{a.code}</td>
+                    <td className="p-3 font-mono text-xs">{a.code}</td>
+                    <td className="p-3">{a.customer?.name ?? '—'}</td>
                     <td className="p-3">{a.service.name}</td>
                     <td className="p-3">{a.employee.name}</td>
+                    <td className="p-3">{a.appointment_date}</td>
                     <td className="p-3">{a.start_time}</td>
                     <td className="p-3">{toRial(a.price)} تومان</td>
                     <td className="p-3">
@@ -111,11 +127,12 @@ export default function AppointmentsManagementPage() {
             {appointments.map((a) => (
               <div key={a.id} className="rounded-xl border border-gray-100 bg-white p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{a.code}</span>
+                  <span className="font-mono text-xs text-gray-500">{a.code}</span>
                   <StatusBadge status={a.status} />
                 </div>
-                <p className="mt-2 text-sm text-gray-700">{a.service.name}</p>
-                <p className="text-xs text-gray-400">{a.employee.name} · {a.start_time}</p>
+                <p className="mt-2 text-sm font-medium">{a.customer?.name ?? '—'}</p>
+                <p className="text-sm text-gray-700">{a.service.name}</p>
+                <p className="text-xs text-gray-400">{a.employee.name} · {a.appointment_date} · {a.start_time}</p>
                 <p className="mt-1 text-sm font-semibold text-primary-600">{toRial(a.price)} تومان</p>
 
                 <select
@@ -132,6 +149,8 @@ export default function AppointmentsManagementPage() {
               </div>
             ))}
           </div>
+
+          {meta && <Pagination meta={meta} onPageChange={setPage} />}
         </>
       )}
     </div>

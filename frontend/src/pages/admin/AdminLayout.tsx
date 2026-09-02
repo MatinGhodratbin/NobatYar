@@ -8,6 +8,8 @@ import { useUpdateMyStatus } from '@/hooks/useEmployeeStatus';
 const navItems = [
   { to: '/admin', label: 'داشبورد', end: true },
   { to: '/admin/appointments', label: 'نوبت‌ها' },
+  { to: '/admin/services', label: 'سرویس‌ها' },
+  { to: '/admin/employees', label: 'کارمندان' },
   { to: '/admin/settings', label: 'تنظیمات' },
 ];
 

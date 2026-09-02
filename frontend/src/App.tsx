@@ -11,6 +11,8 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import DashboardPage from '@/pages/admin/DashboardPage';
 import AppointmentsManagementPage from '@/pages/admin/AppointmentsManagementPage';
+import ServicesPage from '@/pages/admin/ServicesPage';
+import EmployeesPage from '@/pages/admin/EmployeesPage';
 import SettingsPage from '@/pages/admin/SettingsPage';
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="appointments" element={<AppointmentsManagementPage />} />
+          <Route path="services" element={<ServicesPage />} />
+          <Route path="employees" element={<EmployeesPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Route>

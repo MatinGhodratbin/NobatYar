@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminAppointmentController;
 use App\Http\Controllers\Admin\AdminEmployeeController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -106,5 +107,8 @@ Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(
         Route::get('employees', [AdminEmployeeController::class, 'index']);
         Route::post('employees', [AdminEmployeeController::class, 'store']);
         Route::delete('employees/{employee}', [AdminEmployeeController::class, 'destroy']);
+
+        Route::get('settings', [SettingsController::class, 'show']);
+        Route::put('settings', [SettingsController::class, 'update']);
     });
 });
