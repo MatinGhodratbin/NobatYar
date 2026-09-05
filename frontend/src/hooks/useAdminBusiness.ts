@@ -18,10 +18,15 @@ export interface AdminDashboard {
   }>;
 }
 
-export function useDashboard(businessId?: number) {
+export function useDashboard(businessId?: number, dateRange?: { from?: string; to?: string }) {
   return useQuery({
-    queryKey: ['admin', businessId, 'dashboard'],
-    queryFn: async () => (await api.get<AdminDashboard>(`/admin/businesses/${businessId}/dashboard`)).data,
+    queryKey: ['admin', businessId, 'dashboard', dateRange],
+    queryFn: async () =>
+      (
+        await api.get<{ data: AdminDashboard }>(`/admin/businesses/${businessId}/dashboard`, {
+          params: { from: dateRange?.from, to: dateRange?.to },
+        })
+      ).data.data,
     enabled: !!businessId,
   });
 }
@@ -37,6 +42,7 @@ export interface AdminAppointment {
   employee: { name: string };
   business: { name: string };
   customer?: { name: string; phone: string };
+  notes?: string;
 }
 
 export interface PaginationMeta {
@@ -85,6 +91,22 @@ export function useUpdateAppointmentStatus(businessId?: number) {
       (
         await api.patch(`/admin/businesses/${businessId}/appointments/${appointmentId}/status`, {
           status,
+        })
+      ).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', businessId, 'appointments'] });
+    },
+  });
+}
+
+export function useUpdateAppointmentNotes(businessId?: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ appointmentId, notes }: { appointmentId: number; notes: string }) =>
+      (
+        await api.put(`/admin/businesses/${businessId}/appointments/${appointmentId}/notes`, {
+          notes,
         })
       ).data,
     onSuccess: () => {

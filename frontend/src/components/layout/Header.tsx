@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { Avatar } from '@/components/ui/Avatar';
+import { NotificationBell } from '@/components/ui/NotificationBell';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 interface HeaderProps {
   onSearch?: (value: string) => void;
@@ -36,10 +38,9 @@ export function Header({ onSearch, searchPlaceholder = 'جستجو در خدما
         />
       </form>
 
-      <div className="flex items-center gap-3">
-        <span className="text-gray-400" aria-hidden>
-          🔔
-        </span>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <NotificationBell />
         {user && <Avatar name={user.name} size="sm" />}
       </div>
     </header>

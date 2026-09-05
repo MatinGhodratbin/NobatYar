@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMyBusiness } from '@/hooks/useMyBusiness';
-import { useAdminAppointments, useUpdateAppointmentStatus } from '@/hooks/useAdminBusiness';
+import { useAdminAppointments, useUpdateAppointmentStatus, useUpdateAppointmentNotes } from '@/hooks/useAdminBusiness';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Pagination } from '@/components/ui/Pagination';
 
@@ -24,6 +24,9 @@ export default function AppointmentsManagementPage() {
     page,
   });
   const updateStatus = useUpdateAppointmentStatus(business?.id);
+  const updateNotes = useUpdateAppointmentNotes(business?.id);
+  const [editingNotesId, setEditingNotesId] = useState<number | null>(null);
+  const [notesValue, setNotesValue] = useState('');
 
   const appointments = data?.data ?? [];
   const meta = data?.meta;
@@ -85,6 +88,7 @@ export default function AppointmentsManagementPage() {
                   <th className="p-3 text-right">ساعت</th>
                   <th className="p-3 text-right">مبلغ</th>
                   <th className="p-3 text-right">وضعیت</th>
+                  <th className="p-3 text-right">یادداشت</th>
                   <th className="p-3 text-right">تغییر وضعیت</th>
                 </tr>
               </thead>
@@ -100,6 +104,35 @@ export default function AppointmentsManagementPage() {
                     <td className="p-3">{toRial(a.price)} تومان</td>
                     <td className="p-3">
                       <StatusBadge status={a.status} />
+                    </td>
+                    <td className="p-3">
+                      {editingNotesId === a.id ? (
+                        <div className="flex gap-1">
+                          <input
+                            value={notesValue}
+                            onChange={(e) => setNotesValue(e.target.value)}
+                            className="w-32 rounded border border-gray-200 px-2 py-1 text-xs"
+                            placeholder="یادداشت..."
+                          />
+                          <button
+                            onClick={() => {
+                              updateNotes.mutate({ appointmentId: a.id, notes: notesValue });
+                              setEditingNotesId(null);
+                            }}
+                            className="text-xs text-primary-600 hover:underline"
+                          >
+                            ذخیره
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => { setEditingNotesId(a.id); setNotesValue(a.notes ?? ''); }}
+                          className="text-xs text-gray-500 hover:text-primary-600 max-w-[120px] truncate block"
+                          title={a.notes || 'افزودن یادداشت'}
+                        >
+                          {a.notes || '+ یادداشت'}
+                        </button>
+                      )}
                     </td>
                     <td className="p-3">
                       <select
@@ -134,6 +167,10 @@ export default function AppointmentsManagementPage() {
                 <p className="text-sm text-gray-700">{a.service.name}</p>
                 <p className="text-xs text-gray-400">{a.employee.name} · {a.appointment_date} · {a.start_time}</p>
                 <p className="mt-1 text-sm font-semibold text-primary-600">{toRial(a.price)} تومان</p>
+
+                {a.notes && (
+                  <p className="mt-1 text-xs text-gray-500 bg-gray-50 rounded p-2">{a.notes}</p>
+                )}
 
                 <select
                   value={a.status}

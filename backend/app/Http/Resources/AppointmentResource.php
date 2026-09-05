@@ -31,6 +31,7 @@ class AppointmentResource extends JsonResource
                 'id' => $this->business->id,
                 'name' => $this->business->name,
             ],
+            'notes' => $this->notes,
         ];
     }
 }

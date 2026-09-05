@@ -19,6 +19,7 @@ test('two simultaneous bookings for the same slot only succeed once', function (
         'owner_id' => $owner->id,
         'name' => 'سالن تست',
         'slug' => 'test-salon',
+        'is_active' => true,
     ]);
 
     $service = Service::create([
@@ -26,12 +27,16 @@ test('two simultaneous bookings for the same slot only succeed once', function (
         'name' => 'کوتاهی مو',
         'duration_minutes' => 30,
         'price' => 250000,
+        'is_active' => true,
     ]);
 
     $employee = Employee::create([
         'business_id' => $business->id,
         'user_id' => $employeeUser->id,
+        'is_active' => true,
     ]);
+
+    $employee->services()->attach($service->id);
 
     WorkingHour::create([
         'employee_id' => $employee->id,
@@ -46,9 +51,6 @@ test('two simultaneous bookings for the same slot only succeed once', function (
 
     $results = [];
 
-    // شبیه‌سازی دو درخواست هم‌زمان با دو کانکشن جدا از طریق تراکنش‌های تودرتو ممکن نیست
-    // در PHPUnit/Pest به‌صورت واقعی موازی اجرا نمی‌شه، پس رفتار lockForUpdate رو با
-    // دو فراخوانی متوالیِ همون transaction تست می‌کنیم: دومی باید Exception بگیره.
     try {
         $results[] = $bookingService->book($customerA, $employee, $service, $date, '10:00:00');
     } catch (\App\Exceptions\SlotUnavailableException $e) {
@@ -77,6 +79,7 @@ test('overlapping but not identical slots are also rejected', function () {
         'owner_id' => $owner->id,
         'name' => 'سالن تست ۲',
         'slug' => 'test-salon-2',
+        'is_active' => true,
     ]);
 
     $service = Service::create([
@@ -84,12 +87,16 @@ test('overlapping but not identical slots are also rejected', function () {
         'name' => 'اصلاح',
         'duration_minutes' => 45,
         'price' => 150000,
+        'is_active' => true,
     ]);
 
     $employee = Employee::create([
         'business_id' => $business->id,
         'user_id' => $employeeUser->id,
+        'is_active' => true,
     ]);
+
+    $employee->services()->attach($service->id);
 
     WorkingHour::create([
         'employee_id' => $employee->id,
@@ -102,10 +109,8 @@ test('overlapping but not identical slots are also rejected', function () {
     $date = now()->addDay()->format('Y-m-d');
     $bookingService = app(BookingService::class);
 
-    // نوبت اول: ۱۰:۰۰ تا ۱۰:۴۵
     $bookingService->book($customerA, $employee, $service, $date, '10:00:00');
 
-    // نوبت دوم: ۱۰:۲۰ تا ۱۱:۰۵ -> با اولی ۲۵ دقیقه هم‌پوشانی داره، باید رد بشه
     expect(fn () => $bookingService->book($customerB, $employee, $service, $date, '10:20:00'))
         ->toThrow(\App\Exceptions\SlotUnavailableException::class);
 });

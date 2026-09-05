@@ -36,7 +36,10 @@ export function useEmployeeList(businessId?: number) {
     };
   }, [businessId]);
 
-  const employees = Array.isArray(query.data) ? query.data : query.data ?? [];
+  const raw = query.data;
+  const employees: EmployeeStatusItem[] = Array.isArray(raw)
+    ? raw
+    : (raw as any)?.data ?? [];
 
   const merged = employees.map((e) => ({
     ...e,

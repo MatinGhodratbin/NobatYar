@@ -20,12 +20,37 @@ class QueueController extends Controller
             return response()->json(['message' => 'شما اجازه‌ی مشاهده این نوبت را ندارید.'], 403);
         }
 
+        $appointment->load(['service', 'employee.user', 'business']);
+
         return response()->json([
             'appointment_id' => $appointment->id,
             'status' => $appointment->status,
             'people_ahead' => $this->queueService->peopleAhead($appointment),
             'estimated_minutes' => $this->queueService->estimatedWaitMinutes($appointment),
             'progress_percent' => $this->queueService->progressPercent($appointment),
+            'appointment' => [
+                'id' => $appointment->id,
+                'code' => $appointment->code,
+                'status' => $appointment->status,
+                'appointment_date' => $appointment->appointment_date->format('Y-m-d'),
+                'start_time' => $appointment->start_time,
+                'end_time' => $appointment->end_time,
+                'price' => $appointment->price,
+                'service' => [
+                    'id' => $appointment->service->id,
+                    'name' => $appointment->service->name,
+                    'duration_minutes' => $appointment->service->duration_minutes,
+                ],
+                'employee' => [
+                    'id' => $appointment->employee->id,
+                    'name' => $appointment->employee->user->name,
+                    'position' => $appointment->employee->position,
+                ],
+                'business' => [
+                    'id' => $appointment->business->id,
+                    'name' => $appointment->business->name,
+                ],
+            ],
         ]);
     }
 }

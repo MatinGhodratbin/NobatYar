@@ -59,4 +59,19 @@ class AdminAppointmentController extends Controller
 
         return response()->json(['appointment' => new AppointmentResource($appointment)]);
     }
+
+    public function updateNotes(Request $request, Business $business, Appointment $appointment): JsonResponse
+    {
+        if ($appointment->business_id !== $business->id) {
+            return response()->json(['message' => 'این نوبت متعلق به این کسب‌وکار نیست.'], 404);
+        }
+
+        $validated = $request->validate([
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $appointment->update(['notes' => $validated['notes'] ?? null]);
+
+        return response()->json(['appointment' => new AppointmentResource($appointment)]);
+    }
 }

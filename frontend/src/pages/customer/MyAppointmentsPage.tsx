@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMyAppointments, type CustomerAppointment } from '@/hooks/useMyAppointments';
+import { useMyAppointments } from '@/hooks/useMyAppointments';
 import { StatusBadge } from '@/components/admin/StatusBadge';
 import { Pagination } from '@/components/ui/Pagination';
 

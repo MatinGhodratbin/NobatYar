@@ -99,6 +99,8 @@ Route::middleware('auth:sanctum')->prefix('admin/businesses/{business}')->group(
         ->middleware('business.access:any');
     Route::patch('appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus'])
         ->middleware('business.access:any');
+    Route::put('appointments/{appointment}/notes', [AdminAppointmentController::class, 'updateNotes'])
+        ->middleware('business.access:any');
 
     Route::middleware('business.access:owner')->group(function () {
         Route::get('services', [AdminServiceController::class, 'index']);

@@ -4,6 +4,7 @@ import { useLiveQueue } from '@/hooks/useLiveQueue';
 import { useCancelAppointment } from '@/hooks/useCancelAppointment';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { CompletedState } from '@/components/booking/CompletedState';
+import { printTicket } from '@/components/booking/PrintTicket';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار تایید',
@@ -29,7 +30,7 @@ function stepIndex(status: string) {
 export default function LiveQueuePage() {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const navigate = useNavigate();
-  const { status, reminderMessage, isLoading, isError, refetch } = useLiveQueue(
+  const { status, appointment, reminderMessage, isLoading, isError, refetch } = useLiveQueue(
     appointmentId ? Number(appointmentId) : undefined
   );
   const cancelAppointment = useCancelAppointment();
@@ -138,6 +139,24 @@ export default function LiveQueuePage() {
             ))}
           </div>
         </div>
+
+        {/* دکمه چاپ */}
+        {appointment && (
+        <button
+          onClick={() => printTicket({
+            code: appointment.code,
+            service: appointment.service.name,
+            employee: appointment.employee.name,
+            business: appointment.business.name,
+            date: appointment.appointment_date,
+            time: appointment.start_time,
+            price: appointment.price,
+          })}
+          className="mt-4 w-full rounded-lg border border-gray-200 bg-white py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+        >
+          🖨️ چاپ بلیط
+        </button>
+        )}
 
         {/* دکمه لغو */}
         {canCancel && (

@@ -11,6 +11,19 @@ export interface QueueStatus {
   progress_percent: number;
 }
 
+export interface AppointmentDetail {
+  id: number;
+  code: string;
+  status: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  price: number;
+  service: { id: number; name: string; duration_minutes: number };
+  employee: { id: number; name: string; position: string | null };
+  business: { id: number; name: string };
+}
+
 export function useLiveQueue(appointmentId?: number) {
   const [liveStatus, setLiveStatus] = useState<QueueStatus | null>(null);
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
@@ -18,6 +31,12 @@ export function useLiveQueue(appointmentId?: number) {
   const initialQuery = useQuery({
     queryKey: ['queue', appointmentId],
     queryFn: async () => (await api.get<QueueStatus>(`/booking/appointments/${appointmentId}/queue`)).data,
+    enabled: !!appointmentId,
+  });
+
+  const appointmentQuery = useQuery({
+    queryKey: ['appointment', appointmentId],
+    queryFn: async () => (await api.get<{ appointment: AppointmentDetail }>(`/booking/appointments/${appointmentId}/queue`)).data,
     enabled: !!appointmentId,
   });
 
@@ -42,6 +61,7 @@ export function useLiveQueue(appointmentId?: number) {
 
   return {
     status: liveStatus ?? initialQuery.data ?? null,
+    appointment: (appointmentQuery.data as any)?.appointment ?? null,
     reminderMessage,
     isLoading: initialQuery.isLoading,
     isError: initialQuery.isError,

@@ -3,7 +3,6 @@ import { useMyBusiness } from '@/hooks/useMyBusiness';
 import {
   useWorkingHours,
   useUpdateWorkingHours,
-  type EmployeeWorkingHours,
 } from '@/hooks/useWorkingHours';
 
 const dayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];

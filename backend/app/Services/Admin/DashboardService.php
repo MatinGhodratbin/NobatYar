@@ -8,34 +8,33 @@ use Carbon\CarbonImmutable;
 
 class DashboardService
 {
-    public function stats(Business $business): array
+    public function stats(Business $business, ?string $from = null, ?string $to = null): array
     {
         $today = CarbonImmutable::today();
-        $weekAgo = $today->subDays(6);
+        $fromDate = $from ? CarbonImmutable::parse($from) : $today->subDays(6);
+        $toDate = $to ? CarbonImmutable::parse($to) : $today;
 
         $baseQuery = fn () => Appointment::where('business_id', $business->id);
 
-        $totalAppointments = $baseQuery()->count();
+        $totalAppointments = $baseQuery()
+            ->whereBetween('appointment_date', [$fromDate, $toDate])
+            ->count();
 
         $monthlyRevenue = $baseQuery()
             ->where('status', 'completed')
-            ->whereMonth('appointment_date', now()->month)
+            ->whereBetween('appointment_date', [$fromDate, $toDate])
             ->sum('price');
 
         $newCustomers = $baseQuery()
-            ->whereMonth('created_at', now()->month)
+            ->whereBetween('created_at', [$fromDate->startOfDay(), $toDate->endOfDay()])
             ->distinct('customer_id')
             ->count('customer_id');
 
-        $avgWaitMinutes = (int) $baseQuery()
-            ->whereDate('appointment_date', $today)
-            ->whereIn('status', ['confirmed', 'in_queue'])
-            ->avg('start_time');
-
-        $serviceDistribution = $baseQuery()
+        $serviceDistribution = Appointment::where('appointments.business_id', $business->id)
             ->selectRaw('services.name as service_name, count(*) as total')
             ->join('services', 'services.id', '=', 'appointments.service_id')
             ->whereNotIn('appointments.status', ['cancelled'])
+            ->whereBetween('appointments.appointment_date', [$fromDate, $toDate])
             ->groupBy('services.name')
             ->orderByDesc('total')
             ->limit(6)
@@ -44,15 +43,16 @@ class DashboardService
         $revenueTrend = $baseQuery()
             ->selectRaw('DATE(appointment_date) as day, SUM(price) as total')
             ->where('status', 'completed')
-            ->whereBetween('appointment_date', [$weekAgo, $today])
+            ->whereBetween('appointment_date', [$fromDate, $toDate])
             ->groupBy('day')
             ->orderBy('day')
             ->get();
 
         $recentAppointments = $baseQuery()
             ->with(['service', 'employee.user', 'customer'])
+            ->whereBetween('appointment_date', [$fromDate, $toDate])
             ->latest('created_at')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         return [

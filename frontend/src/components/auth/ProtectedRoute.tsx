@@ -11,12 +11,9 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = useAuthStore.subscribe(
-      (state) => state,
-      () => {
-        setIsHydrated(true);
-      }
-    );
+    const unsubscribe = useAuthStore.subscribe(() => {
+      setIsHydrated(true);
+    });
 
     // Check if already hydrated
     if (token || user) {
